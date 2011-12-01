@@ -1,0 +1,9 @@
+This directory contains the "coreutils" Python utilities:
+
+core_utils.py - utility to debug Python core images
+find_leaks.py - helps find leaked Python objects
+parse_dwarf.py - Parse DWARF debugging data (used by core_utils)
+parse_elf.py - Parse ELF executables (used by core_utils)
+
+These utilities were developed at IronPort Systems and have been provided as
+by Cisco Systems under an MIT license.
