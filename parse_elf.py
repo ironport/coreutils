@@ -294,6 +294,7 @@ def parse_ident (data):
         r['class'] = {0:'unknown',1:'32-bit',2:'64-bit'}[ord(data[EI_CLASS])]
         r['data']  = {0:'unknown',1:'little-endian',2:'big-endian'}[ord(data[EI_DATA])]
         r['osabi'] = {
+            0:'unix', # modern linux reports this as "UNIX - System V"
             1:'hpux', 2:'netbsd', 3:'linux', 4:'hurd', 5:'86open',
             6:'solaris', 7:'monterey', 8:'irix', 9:'freebsd',
             10:'tru64', 97:'arm', 255:'standalone'
@@ -499,13 +500,20 @@ def go (filename):
                 # Check for FreeBSD branding
                 if name == 'FreeBSD\x00' and descsz == 4:
                     pass
+                elif name == 'GNU\x00':
+                    # doesn't match the struct description
+                    pass
                 else:
                     parse_note_prstatus(core_info, desc)
             elif note_type == 2:
                 # floating point register info
                 pass
             elif note_type == 3:
-                parse_note_psinfo(core_info, desc)
+                if name == 'GNU\x00':
+                    # doesn't match the struct description
+                    pass
+                else:
+                    parse_note_psinfo(core_info, desc)
             else:
                 print "unknown note type:", note_type
 
@@ -609,4 +617,4 @@ if __name__ == '__main__':
         else:
             sort = None
         report_out = sys.stdout
-        go (sys.argv[1])
+        ehdr, phdr_list, shdr_list, syms, core_info = go (sys.argv[1])
