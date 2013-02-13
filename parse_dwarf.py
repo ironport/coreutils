@@ -168,6 +168,29 @@ DW_AT_call_file             = 0x58 #  DWARF3
 DW_AT_call_line             = 0x59 #  DWARF3
 DW_AT_description           = 0x5a #  DWARF3
 
+# DWARF4
+DW_AT_description           = 0x5a
+DW_AT_binary_scale          = 0x5b
+DW_AT_decimal_scale         = 0x5c
+DW_AT_small                 = 0x5d
+DW_AT_decimal_sign          = 0x5e
+DW_AT_digit_count           = 0x5f
+DW_AT_picture_string        = 0x60
+DW_AT_mutable               = 0x61
+DW_AT_threads_scaled        = 0x62
+DW_AT_explicit              = 0x63
+DW_AT_object_pointer        = 0x64
+DW_AT_endianity             = 0x65
+DW_AT_elemental             = 0x66
+DW_AT_pure                  = 0x67
+DW_AT_recursive             = 0x68
+DW_AT_signature             = 0x69
+DW_AT_main_subprogram       = 0x6a
+DW_AT_data_bit_offset       = 0x6b
+DW_AT_const_expr            = 0x6c
+DW_AT_enum_class            = 0x6d
+DW_AT_linkage_name          = 0x6e
+
 # gcc spits this one out at times
 DW_AT_MIPS_linkage_name     = 0x2007 # MIPS/SGI
 
@@ -198,6 +221,11 @@ DW_FORM_ref4            = 0x13
 DW_FORM_ref8            = 0x14
 DW_FORM_ref_udata       = 0x15
 DW_FORM_indirect        = 0x16
+# DWARF 4
+DW_FORM_sec_offset      = 0x17
+DW_FORM_exprloc         = 0x18
+DW_FORM_flag_present    = 0x19
+DW_FORM_ref_sig8        = 0x20
 
 FORMS = {}
 for name in dir():
@@ -290,6 +318,8 @@ def read_ref_udata (f):
     return read_uleb128 (f)
 def read_udata (f):
     return read_uleb128 (f)
+def read_flag_present (f):
+    return True
 
 def decode_location (x):
     # interpret form
@@ -329,6 +359,7 @@ form_readers = {
     # XXX: HACK - I'm too lazy to figure out
     #      how to sign-extend these numbers.
     DW_FORM_sdata:      read_udata,
+    DW_FORM_flag_present: read_flag_present, # DWARF4
     }
 
 class section:
@@ -431,8 +462,17 @@ class info_section (section):
                 #   for the stack language.  however, gcc seems to only output
                 #   the uleb128 & sleb128 versions...
                 if attr in (DW_AT_data_member_location, DW_AT_location):
-                    x = decode_location (x)
-                attrs[ATS[attr]] = x
+                    if isinstance (x, str):
+                        x = decode_location (x)
+                    elif isinstance (x, int):
+                        pass
+                    else:
+                        raise ValueError ("unexpected type in DW_AT_data_member_location/DW_AT_location")
+                try:
+                    attrs[ATS[attr]] = x
+                except KeyError:
+                    # lots of vendor-specific extensions
+                    attrs[hex(attr)] = x
             if child:
                 # recursively read the list of children of this node
                 children = self.read_tree (abbrev_table, strings, by_pos, depth + 1, base)
