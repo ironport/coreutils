@@ -199,6 +199,26 @@ for name in dir():
     if name.startswith ('DW_AT_'):
         ATS[eval(name)] = name[6:]
 
+DW_ATE_address         = 0x01
+DW_ATE_boolean         = 0x02
+DW_ATE_complex_float   = 0x03
+DW_ATE_float           = 0x04
+DW_ATE_signed          = 0x05
+DW_ATE_signed_char     = 0x06
+DW_ATE_unsigned        = 0x07
+DW_ATE_unsigned_char   = 0x08
+DW_ATE_imaginary_float = 0x09
+DW_ATE_packed_decimal  = 0x0a
+DW_ATE_numeric_string  = 0x0b
+DW_ATE_edited          = 0x0c
+DW_ATE_signed_fixed    = 0x0d
+DW_ATE_unsigned_fixed  = 0x0e
+
+ATES = {}
+for name in dir():
+    if name.startswith ('DW_ATE_'):
+        ATES[eval(name)] = name[7:]
+
 # DWARF forms
 DW_FORM_addr            = 0x01
 DW_FORM_block2          = 0x03
