@@ -20,6 +20,9 @@
 # SOFTWARE.
 
 
+# Note: this code mistakenly assumes the file it's looking at has the same
+#  endianness as the host.  Please fix.
+
 import struct
 from pprint import pprint as pp
 
@@ -356,7 +359,7 @@ def decode_location (x):
         elif len(x) == 8:
             return struct.unpack ('=q', x)[0]
         else:
-            raise ValueError
+            return 'DW_OP_ADDR:%s' % (x.encode ('hex'))
     else:
         return x
 
@@ -498,7 +501,10 @@ class info_section (section):
                 children = self.read_tree (abbrev_table, strings, by_pos, depth + 1, base)
             else:
                 children = None
-            item = (TAGS[tag], where, attrs, children)
+            if TAGS.has_key (tag):
+                item = (TAGS[tag], where, attrs, children)
+            else:
+                item = (tag, where, attrs, children)
             by_pos[where] = item
             tree.append (item)
             if depth == 0:
